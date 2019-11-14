@@ -2,17 +2,32 @@
     /* Getting shifts array from localstorage so as to render them */
     const shifts = JSON.parse(window.localStorage.getItem('shifts')) || [];
 
+    /* jQuery core elements declaration block */
+    const $addBtn = $('.add-shift-btn');
+    const $saveBtn = $('.save-shift-btn');
+    const $scheduleTime = $('.schedule-table-work-time');
+    const $scheduleCol = $('.schedule-table-grid-col');
+    const workHours = [
+        ["06:00 AM","01:00 AM"],
+        ["06:00 AM","01:00 AM"],
+        ["06:00 AM","01:00 AM"],
+        ["06:00 AM","01:00 AM"],
+        ["06:00 AM","01:00 AM"],
+        ["06:00 AM","01:00 AM"],
+        ["06:00 AM","01:00 AM"]
+    ];
+
     /* Functions declaration block */
     /* Function with shifts' layout */
     const generateShift = ({
-        name = '',
-        topOffset = 0,
-        height= 80,
-        groupName = 'new',
-        color = 'lightgray',
-        index,
-        isCompleted = false
-    }) => {
+                               name = '',
+                               topOffset = 0,
+                               height= 80,
+                               groupName = 'new',
+                               color = 'lightgray',
+                               index,
+                               isCompleted = false
+                           }) => {
         return `
         <div class='shift ${isCompleted ? 'completed' : ''}'
             style='top: ${topOffset}px; height: ${height}px; background-color: ${color}'
@@ -43,22 +58,38 @@
 
         return hours;
     };
-    /* End Function Declaration block */
 
-    /* jQuery core elements declaration block */
-    const $addBtn = $('.add-shift-btn');
-    const $saveBtn = $('.save-shift-btn');
-    const $scheduleTime = $('.schedule-table-work-time');
-    const $scheduleCol = $('.schedule-table-grid-col');
-    const workHours = [
-        ["06:00 AM","01:00 AM"],
-        ["06:00 AM","01:00 AM"],
-        ["06:00 AM","01:00 AM"],
-        ["06:00 AM","01:00 AM"],
-        ["06:00 AM","01:00 AM"],
-        ["06:00 AM","01:00 AM"],
-        ["06:00 AM","01:00 AM"]
-    ];
+    const handleMultipleShiftItemsChange = ($selected) => {
+        $selected.draggable({
+            axis: 'y',
+            containment: [
+                0,
+                $('.schedule-table-grid-col-heading').offset().top + 40,
+                0,
+                $scheduleCol.offset().top + $scheduleCol.height() - 110,
+            ],
+            multiple: true
+        });
+
+        $selected.resizable({
+            minHeight: 40,
+            handles: 's',
+            alsoResize: '.ui-selected',
+            stop: (e, ui) => {
+                const requiredElements = $(ui.element[0]).hasClass('ui-selected') ?
+                    $('.ui-selected')
+                    : $(ui.draggable[0]);
+
+                const height = parseInt(requiredElements.css('height'));
+
+                requiredElements.css({
+                    'height': 40 * Math.round((height / 40)) + 'px',
+                    'width': '95%'
+                });
+            },
+        })
+    };
+    /* End Function Declaration block */
 
     /* Render Block */
     /* Setting data-workday attribute which will further prevent cells from appearing in days' off cols */
@@ -183,96 +214,74 @@
             let layout = $itemParent.html();
             layout += generateShift({index: index});
             $itemParent.html(layout);
+        });
 
-            const $newShift = $('[data-group-key="new"]');
+        const $newShift = $('[data-group-key="new"]');
 
-            /* Multidragging feature */
-            $(window).keydown(keyE => {
-                $(window).unbind('click').click(clickE => {
-                    const $target = $(clickE.target);
+        $newShift.addClass('ui-selected');
 
-                    if ($target.attr('data-group-key') === 'new' && keyE.keyCode === 17) {
-                        $target.toggleClass('ui-selected');
+        /* Offset */
+        $newShift.css({
+            top: 80
+        });
 
-                        const $selected = $('.ui-selected');
+        /* Event for marking shift's item as disabled */
+        $newShift.children('.shift-symbol').unbind().click(e => {
+            $(e.target).parent().toggleClass('disabled');
+        });
 
-                        $selected.draggable({
-                            axis: 'y',
-                            containment: [
-                                0,
-                                $('.schedule-table-grid-col-heading').offset().top + 40,
-                                0,
-                                $scheduleCol.offset().top + $scheduleCol.height() - 110,
-                            ],
-                            multiple: true
-                        });
+        /* Adding jQuery UI methods for dragging and resizing */
+        $newShift.resizable({
+            minHeight: 40,
+            handles: 'n,s',
+            stop: (e, ui) => {
+                const height = parseInt(ui.element[0].style.height);
+                ui.element[0].style.height = 40 * Math.round((height / 40)) + 'px';
+            }
+        });
 
-                        $selected.resizable({
-                            minHeight: 40,
-                            handles: 'n,s',
-                            stop: (e, ui) => {
-                                const requiredElements = $(ui.element[0]).hasClass('ui-selected') ?
-                                    $('.ui-selected')
-                                    : $(ui.draggable[0]);
+        $newShift.draggable({
+            axis: 'y',
+            containment: [
+                0,
+                $('.schedule-table-grid-col-heading').offset().top + 40,
+                0,
+                $scheduleCol.offset().top + $scheduleCol.height() - 110,
+            ]
+        });
 
-                                const height = parseInt(requiredElements.css('height'));
+        /* Handle shift position correction after dropping it */
+        $('.schedule-table-grid-cell').droppable({
+            drop: (e, ui) => {
+                const requiredElements = $(ui.draggable[0]).hasClass('ui-selected') ?
+                    $('.ui-selected')
+                    : $(ui.draggable[0]);
 
-                                requiredElements.css({
-                                    'height': 40 * Math.round((height / 40)) + 'px',
-                                    'width': '95%'
-                                });
-                            },
-                            alsoResize: '.ui-selected'
-                        })
-                    } else {
-                        $('.ui-selected').removeClass('ui-selected');
-                    }
-                })
-            });
+                const position = parseInt(requiredElements.css('top'));
 
-            /* Offset */
-            $newShift.css({
-                top: 80
-            });
+                requiredElements.css('top', 40 * Math.round((position / 40)) + 'px');
+            }
+        });
 
-            /* Event for marking shift's item as disabled */
-            $newShift.children('.shift-symbol').unbind().click(e => {
-                $(e.target).parent().toggleClass('disabled');
-            });
+        handleMultipleShiftItemsChange($('.ui-selected'));
 
-            /* Adding jQuery UI methods for dragging and resizing */
-            $newShift.resizable({
-                minHeight: 40,
-                handles: 'n,s',
-                stop: (e, ui) => {
-                    const height = parseInt(ui.element[0].style.height);
-                    ui.element[0].style.height = 40 * Math.round((height / 40)) + 'px';
-                }
-            });
+        /* Multidragging feature */
+        $(window).keydown(keyE => {
+            $(window).unbind('click').click(clickE => {
+                const $target = $(clickE.target);
 
-            $newShift.draggable({
-                axis: 'y',
-                containment: [
-                    0,
-                    $('.schedule-table-grid-col-heading').offset().top + 40,
-                    0,
-                    $scheduleCol.offset().top + $scheduleCol.height() - 110,
-                ]
-            });
+                if ($target.attr('data-group-key') === 'new' && keyE.keyCode === 17) {
+                    $target.toggleClass('ui-selected');
 
-            /* Handle shift position correction after dropping it */
-            $('.schedule-table-grid-cell').droppable({
-                drop: (e, ui) => {
-                    const requiredElements = $(ui.draggable[0]).hasClass('ui-selected') ?
-                        $('.ui-selected')
-                        : $(ui.draggable[0]);
-
-                    const position = parseInt(requiredElements.css('top'));
-                        
-                    requiredElements.css('top', 40 * Math.round((position / 40)) + 'px');
+                    handleMultipleShiftItemsChange($('.ui-selected'));
+                } else {
+                    const $selected = $('.ui-selected');
+                    $selected.draggable('destroy');
+                    $selected.resizable('destroy');
+                    $selected.removeClass('ui-selected');
                 }
             })
-        })
+        });
     });
 
     /* Shift save handling */

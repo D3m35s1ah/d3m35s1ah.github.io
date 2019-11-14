@@ -509,7 +509,6 @@ footer {
   height: 80px;
   display: flex;
   align-items: center;
-  justify-content: center;
   flex-direction: column;
   position: absolute !important;
   justify-content: space-between;
@@ -547,7 +546,7 @@ footer {
     border-radius: 5px;
     width: 40px;
     height: 40px;
-    padding: 0px 10px;
+    padding: 0 10px;
     background-color: gainsboro;
     display: flex;
     justify-content: center;
@@ -556,7 +555,7 @@ footer {
     .shift-symbol::before, .shift-symbol::after {
       display: block;
       content: '';
-      width: 25px;
+      width: 20px;
       height: 5px;
       background-color: lightgray;
       transition: -webkit-transform .3s ease;
