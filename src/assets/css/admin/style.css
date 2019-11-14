@@ -523,6 +523,8 @@ footer {
   .shift.completed .shift-name,
   .shift.completed .shift-remove {
     display: block; }
+  .shift.ui-selected {
+    border: 2px solid skyblue; }
   .shift.disabled {
     opacity: .7; }
     .shift.disabled .shift-symbol::after {
@@ -531,7 +533,8 @@ footer {
   .shift-name {
     display: none;
     margin: auto;
-    color: white; }
+    color: white;
+    font-size: 110%; }
   .shift-remove {
     display: none;
     position: absolute;

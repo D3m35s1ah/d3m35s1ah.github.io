@@ -1,113 +1,135 @@
 (function($) {
+    /* Getting shifts array from localstorage so as to render them */
     const shifts = JSON.parse(window.localStorage.getItem('shifts')) || [];
 
-    const $addBtn = $('.add-shift-btn');
-        const $saveBtn = $('.save-shift-btn');
-        const $scheduleTime = $('.schedule-table-work-time');
-        const $scheduleCol = $('.schedule-table-grid-col');
-        const workHours = [
-          ["06:00 AM","01:00 AM"],
-          ["06:00 AM","01:00 AM"],
-          ["06:00 AM","01:00 AM"],
-          ["06:00 AM","01:00 AM"],
-          ["06:00 AM","01:00 AM"],
-          ["06:00 AM","01:00 AM"],
-          ["06:00 AM","01:00 AM"]];
-
-    $('.schedule-table-grid-col-heading').each((index, item) => {
-      if (workHours[index] !== "0") {
-        $(item).attr('data-workday', true);
-      }
-    });
-
-        const generateShift = ({
-          name = '',
-          topOffset = 0,
-          height= 80,
-          groupName = 'new',
-          color = 'lightgray',
-          index,
-          isCompleted = false
-        }) => {
-          return `
-          <div class='shift ${isCompleted ? 'completed' : ''}'
-                style='top: ${topOffset}px; height: ${height}px; background-color: ${color}'
-                data-index='${index}'
-                data-group-key='${groupName}'>
+    /* Functions declaration block */
+    /* Function with shifts' layout */
+    const generateShift = ({
+        name = '',
+        topOffset = 0,
+        height= 80,
+        groupName = 'new',
+        color = 'lightgray',
+        index,
+        isCompleted = false
+    }) => {
+        return `
+        <div class='shift ${isCompleted ? 'completed' : ''}'
+            style='top: ${topOffset}px; height: ${height}px; background-color: ${color}'
+            data-index='${index}'
+            data-group-key='${groupName}'>
             <div class='shift-resizer shift-resizer-top'></div>
             <span class='shift-symbol'></span>
             <h5 class='shift-name'>${name}</h5>
             <h4 class='shift-remove'>x</h4>
             <div class='shift-resizer shift-resizer-bottom'></div>
-          </div>
-          `
-        };
+        </div>
+        `
+    };
 
-        const $selectColor = $('.color-select');
+    /* AM to PM conversion */
+    const convertTime = (time12h) => {
+        const [time, modifier] = time12h.split(' ');
 
-        $selectColor.click(e => {
-          $(e.currentTarget).toggleClass('active');
-        });
+        let [hours, minutes] = time.split(':');
 
-        $('.color-select-list-item').click(e => {
-          let selectedColor = $(e.currentTarget).attr('data-value');
-          $(e.currentTarget).parents('.color-select').find('.color-select-preview').css('backgroundColor', selectedColor);
-          $('[data-group-key="new"]').css('backgroundColor', selectedColor);
-        });
-
-        const convertTime = (time12h) => {
-          const [time, modifier] = time12h.split(' ');
-
-          let [hours, minutes] = time.split(':');
-
-          if (hours === '12') {
+        if (hours === '12') {
             hours = '00';
-          }
-
-          if (modifier === 'PM') {
-            hours = parseInt(hours, 10) + 12;
-          }
-
-          return hours;
         }
 
-        let longestWorkingDayInHours = 0;
-        let earliestOpeningHour = 24;
+        if (modifier === 'PM') {
+            hours = parseInt(hours, 10) + 12;
+        }
 
-          $scheduleCol.each((index, item) => {
-            if (workHours[index][0] === "0") {
-              return false;
-            }
+        return hours;
+    };
+    /* End Function Declaration block */
 
-            const startHours = parseInt(convertTime(workHours[index][0])),
-              closeHours = parseInt(convertTime(workHours[index][1])),
-              workDayInHoursLength = (closeHours - startHours) < 0 ? 
-                                            24 - -(closeHours - startHours) 
-                                            : closeHours - startHours;
+    /* jQuery core elements declaration block */
+    const $addBtn = $('.add-shift-btn');
+    const $saveBtn = $('.save-shift-btn');
+    const $scheduleTime = $('.schedule-table-work-time');
+    const $scheduleCol = $('.schedule-table-grid-col');
+    const workHours = [
+        ["06:00 AM","01:00 AM"],
+        ["06:00 AM","01:00 AM"],
+        ["06:00 AM","01:00 AM"],
+        ["06:00 AM","01:00 AM"],
+        ["06:00 AM","01:00 AM"],
+        ["06:00 AM","01:00 AM"],
+        ["06:00 AM","01:00 AM"]
+    ];
 
-            if (workDayInHoursLength > longestWorkingDayInHours) {
-              longestWorkingDayInHours = workDayInHoursLength;
-            }
+    /* Render Block */
+    /* Setting data-workday attribute which will further prevent cells from appearing in days' off cols */
+    $('.schedule-table-grid-col-heading').each((index, item) => {
+        if (workHours[index] !== "0") {
+            $(item).attr('data-workday', true);
+        }
+    });
 
-            if (startHours < earliestOpeningHour) {
-              earliestOpeningHour = startHours;
-            }
+    /* Reusable time variables */
+    let longestWorkingDayInHours = 0;
+    let earliestOpeningHour = 24;
 
-            for (let j = 0; j <= workDayInHoursLength; j++) {
-              let layout = $(item).html();
-              layout += `<div class='schedule-table-grid-cell'></div>`;
-              $(item).html(layout);
-            }
-          })
+    /* Rendering work time column */
+    $scheduleCol.each((index, item) => {
+        //If days is marked as day off skip it
+        if (workHours[index][0] === "0") {
+            return false;
+        }
 
-          shifts.forEach(shift => {
-            $scheduleCol.each((i, item) => {
-              if (workHours[i] == '0' || shift.disabled.includes(i)) {
+        /* Calculate the latest and the earliest hours of working day */
+        const startHours = parseInt(convertTime(workHours[index][0])),
+            closeHours = parseInt(convertTime(workHours[index][1])),
+            workDayInHoursLength = (closeHours - startHours) < 0 ?
+                24 - -(closeHours - startHours)
+                : closeHours - startHours;
+
+        if (workDayInHoursLength > longestWorkingDayInHours) {
+            longestWorkingDayInHours = workDayInHoursLength;
+        }
+
+        if (startHours < earliestOpeningHour) {
+            earliestOpeningHour = startHours;
+        }
+
+        //Generate cells in column according to day's starting and closing hours
+        for (let j = 0; j <= workDayInHoursLength; j++) {
+            let layout = $(item).html();
+            layout += `<div class='schedule-table-grid-cell'></div>`;
+            $(item).html(layout);
+        }
+    });
+
+    /* Render working time column */
+    for (let i = 0; i <= longestWorkingDayInHours; i++) {
+        let hour = earliestOpeningHour + i;
+
+        if (hour >= 24) {
+            hour = -(24 - hour);
+        }
+
+        const AmOrPm = hour >= 12 ? 'PM' : 'AM';
+
+        hour = (hour % 12) || 12;
+
+        let layout = $scheduleTime.html();
+        layout += `<div class='schedule-table-work-time-item'>${hour + AmOrPm}</div>`;
+        $scheduleTime.html(layout);
+    }
+
+    /* Shifts render */
+    shifts.forEach(shift => {
+        /* If the day is a day off or shift.disabled array includes current index shift won't be rendered */
+        $scheduleCol.each((i, item) => {
+            if (workHours[i] === '0' || shift.disabled.includes(i)) {
                 return;
-              }
+            }
 
-              let layout = $(item).html();
-              layout += generateShift({
+            /* Adding shift to column */
+            let layout = $(item).html();
+            layout += generateShift({
                 name: shift.name,
                 topOffset: shift.yaxis[i],
                 height: shift.height[i],
@@ -115,142 +137,207 @@
                 color: shift.color,
                 index: i,
                 isCompleted: true,
-              });
-              $(item).html(layout);
             });
+            $(item).html(layout);
+        });
 
-            $('.shift-remove').click(e => {
-              const groupKey = $(e.target).parent().data('group-key');
+        /* Event for deleting shifts */
+        $('.shift-remove').click(e => {
+            const groupKey = $(e.target).parent().data('group-key');
 
-              shifts.forEach((item, index) => {
+            shifts.forEach((item, index) => {
                 if (item.name === groupKey) {
-                  shifts.splice(index, 1);
+                    shifts.splice(index, 1);
                 }
-              });
-              window.localStorage.setItem('shifts', JSON.stringify(shifts));
-
-              $(`[data-group-key='${groupKey}']`).remove();
             });
-          })
+            window.localStorage.setItem('shifts', JSON.stringify(shifts));
 
-          for (let i = 0; i <= longestWorkingDayInHours; i++) {
-            let hour = earliestOpeningHour + i;
+            $(`[data-group-key='${groupKey}']`).remove();
+        });
+    });
+    /* End Render Block */
 
-            if (hour >= 24) {
-              hour = -(24 - hour);
-            }
+    /* Settings section events block */
+    /* Custom color select menu events */
+    const $selectColor = $('.color-select');
 
-            const AmOrPm = hour >= 12 ? 'PM' : 'AM';
+    $selectColor.click(e => {
+        $(e.currentTarget).toggleClass('active');
+    });
 
-            hour = (hour % 12) || 12;
+    $('.color-select-list-item').click(e => {
+        let selectedColor = $(e.currentTarget).attr('data-value');
+        $(e.currentTarget).parents('.color-select').find('.color-select-preview').css('backgroundColor', selectedColor);
+        $('[data-group-key="new"]').css('backgroundColor', selectedColor);
+    });
 
-            let layout = $scheduleTime.html();
-            layout += `<div class='schedule-table-work-time-item'>${hour + AmOrPm}</div>`;
-            $scheduleTime.html(layout);
-          }
+    $addBtn.click(() => {
+        $('.schedule-settings').addClass('active');
+        $addBtn.css('display', 'none');
+        $saveBtn.css('display', 'block');
 
-        $addBtn.click(() => {
-          $('.schedule-settings').addClass('active');
-          $addBtn.css('display', 'none');
-          $saveBtn.css('display', 'block');
-
-          $('[data-workday]').each((index, item) => {
+        /* Rendering new shift for each column */
+        $('[data-workday]').each((index, item) => {
             const $itemParent = $(item).parent();
 
             let layout = $itemParent.html();
             layout += generateShift({index: index});
             $itemParent.html(layout);
 
-            $('[data-group-key="new"]').css({
-              top: 80
+            const $newShift = $('[data-group-key="new"]');
+
+            /* Multidragging feature */
+            $(window).keydown(keyE => {
+                $(window).unbind('click').click(clickE => {
+                    const $target = $(clickE.target);
+
+                    if ($target.attr('data-group-key') === 'new' && keyE.keyCode === 17) {
+                        $target.toggleClass('ui-selected');
+
+                        const $selected = $('.ui-selected');
+
+                        $selected.draggable({
+                            axis: 'y',
+                            containment: [
+                                0,
+                                $('.schedule-table-grid-col-heading').offset().top + 40,
+                                0,
+                                $scheduleCol.offset().top + $scheduleCol.height() - 110,
+                            ],
+                            multiple: true
+                        });
+
+                        $selected.resizable({
+                            minHeight: 40,
+                            handles: 'n,s',
+                            stop: (e, ui) => {
+                                const requiredElements = $(ui.element[0]).hasClass('ui-selected') ?
+                                    $('.ui-selected')
+                                    : $(ui.draggable[0]);
+
+                                const height = parseInt(requiredElements.css('height'));
+
+                                requiredElements.css({
+                                    'height': 40 * Math.round((height / 40)) + 'px',
+                                    'width': '95%'
+                                });
+                            },
+                            alsoResize: '.ui-selected'
+                        })
+                    } else {
+                        $('.ui-selected').removeClass('ui-selected');
+                    }
+                })
             });
 
-            $('[data-group-key="new"] .shift-symbol').unbind().click(e => {
-              console.log('click');
-              $(e.target).parent().toggleClass('disabled');
-            })
-
-            $('[data-group-key="new"]').resizable({
-              minHeight: 40,
-              handles: 'n,s',
-              stop: (e, ui) => {
-                const height = parseInt(ui.element[0].style.height);
-                ui.element[0].style.height = 40 * Math.round((height / 40)) + 'px';
-              }
+            /* Offset */
+            $newShift.css({
+                top: 80
             });
 
-            $('[data-group-key="new"]').draggable({
-              axis: 'y',
-              containment: [
-                0,
-                $('[data-group-key="new"]').offset().top - 40,
-                0,
-                $scheduleCol.offset().top + $scheduleCol.height() - 110,
-              ]
+            /* Event for marking shift's item as disabled */
+            $newShift.children('.shift-symbol').unbind().click(e => {
+                $(e.target).parent().toggleClass('disabled');
             });
 
+            /* Adding jQuery UI methods for dragging and resizing */
+            $newShift.resizable({
+                minHeight: 40,
+                handles: 'n,s',
+                stop: (e, ui) => {
+                    const height = parseInt(ui.element[0].style.height);
+                    ui.element[0].style.height = 40 * Math.round((height / 40)) + 'px';
+                }
+            });
+
+            $newShift.draggable({
+                axis: 'y',
+                containment: [
+                    0,
+                    $('.schedule-table-grid-col-heading').offset().top + 40,
+                    0,
+                    $scheduleCol.offset().top + $scheduleCol.height() - 110,
+                ]
+            });
+
+            /* Handle shift position correction after dropping it */
             $('.schedule-table-grid-cell').droppable({
-              drop: (e, ui) => {
-                const position = parseInt(ui.draggable[0].style.top);
-                ui.draggable[0].style.top = 40 * Math.round((position / 40)) + 'px';
-              }
+                drop: (e, ui) => {
+                    const requiredElements = $(ui.draggable[0]).hasClass('ui-selected') ?
+                        $('.ui-selected')
+                        : $(ui.draggable[0]);
+
+                    const position = parseInt(requiredElements.css('top'));
+                        
+                    requiredElements.css('top', 40 * Math.round((position / 40)) + 'px');
+                }
             })
-          })
         })
+    });
 
-        $saveBtn.click(() => {
-          let shiftSettings = {};
-          let shiftName = $('#shift-name').val();
-          let diningArea = $('#dining-select').val();
-          let shiftColor = $('[data-group-key="new"]').css('backgroundColor');
+    /* Shift save handling */
+    $saveBtn.click(() => {
+        let shiftSettings = {};
+        const shiftName = $('#shift-name').val();
+        const diningArea = $('#dining-select').val();
+        const shiftColor = $('[data-group-key="new"]').css('backgroundColor');
 
-          if (!shiftName.trim()) {
+        //Prevent creating unnamed schedule
+        if (!shiftName.trim()) {
             return;
-          }
+        }
 
-          $saveBtn.css('display', 'none');
-          $('.schedule-settings').removeClass('active');
-          $addBtn.css('display', 'block');
+        $saveBtn.css('display', 'none');
+        $('.schedule-settings').removeClass('active');
+        $addBtn.css('display', 'block');
 
-          const $editGroup = $('[data-group-key="new"]');
+        const $editGroup = $('[data-group-key="new"]');
 
-          $editGroup.draggable('disable');
-          $editGroup.resizable('disable');
+        /* Making shift's elements static */
+        $editGroup.draggable('disable');
+        $editGroup.resizable('disable');
 
-          $editGroup.addClass('completed');
+        /* Removing configuration items */
+        $editGroup.addClass('completed');
 
-          $editGroup.children('.shift-name').html(shiftName);
+        $editGroup.children('.shift-name').html(shiftName);
 
-          $editGroup.attr('data-group-key', shiftName);
+        /* Setting unique group name for further render */
+        $editGroup.attr('data-group-key', shiftName);
 
-          shiftSettings.name = shiftName;
-          shiftSettings.area = diningArea;
-          shiftSettings.color = shiftColor;
-          shiftSettings.yaxis = [];
-          shiftSettings.height = [];
-          shiftSettings.disabled = [];
-          $editGroup.each((index, item) => {
+        /* Shift's parameters for db or localStorage in my case */
+        shiftSettings.name = shiftName;
+        shiftSettings.area = diningArea;
+        shiftSettings.color = shiftColor;
+        shiftSettings.yaxis = [];
+        shiftSettings.height = [];
+        shiftSettings.disabled = [];
+        $editGroup.each((index, item) => {
             shiftSettings.height.push(parseInt($(item).css('height')));
             shiftSettings.yaxis.push(parseInt($(item).css('top')));
             if ($(item).hasClass('disabled')) {
-              shiftSettings.disabled.push(index);
+                shiftSettings.disabled.push(index);
             }
-          });
+        });
 
-          $('.shift.disabled').remove();
+        /* Removing shift's elements marked as disabled */
+        $('.shift.disabled').remove();
 
-          let localStorageShifts = JSON.parse(window.localStorage.getItem('shifts')) || [];
-          localStorageShifts.push(shiftSettings);
-          window.localStorage.setItem('shifts', JSON.stringify(localStorageShifts));
-        })
+        /* Saving changes to localStorage */
+        let localStorageShifts = JSON.parse(window.localStorage.getItem('shifts')) || [];
+        localStorageShifts.push(shiftSettings);
+        window.localStorage.setItem('shifts', JSON.stringify(localStorageShifts));
+    });
 
-        $('.settings-cancel').click(e => {
-          $saveBtn.css('display', 'none');
-          $('.schedule-settings').removeClass('active');
-          $addBtn.css('display', 'block');
+    /* Handling shift creation cancel */
+    $('.settings-cancel').click(e => {
+        $saveBtn.css('display', 'none');
+        $('.schedule-settings').removeClass('active');
+        $addBtn.css('display', 'block');
 
-          $('#shift-name').val('')
-          $('#dining-select').val('')
-          $('[data-group-key="new"]').remove();
-        })
+        $('#shift-name').val('');
+        $('#dining-select').val('');
+        $('[data-group-key="new"]').remove();
+    })
+    /* End Settings section events block */
 })(jQuery);

@@ -155,6 +155,10 @@
         }
     }
 
+    &.ui-selected {
+        border: 2px solid skyblue;
+    };
+
     &.disabled {
         opacity: .7;
 
@@ -167,6 +171,7 @@
         display: none;
         margin: auto;
         color: white;
+        font-size: 110%;
     }
 
     &-remove {
