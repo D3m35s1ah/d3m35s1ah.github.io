@@ -1,28 +1,33 @@
 {
-  "_from": "@mdi/font@^3.3.92",
-  "_id": "@mdi/font@3.8.95",
+  "_args": [
+    [
+      "@mdi/font@3.9.97",
+      "x:\\work\\table80-guestcenter"
+    ]
+  ],
+  "_from": "@mdi/font@3.9.97",
+  "_id": "@mdi/font@3.9.97",
   "_inBundle": false,
-  "_integrity": "sha512-KR6TBdVYV3p1ZOM+Ge45Kk3P8yHfSGt3YOryVlkEKdO3vMiPjRaaDcQsdogGxVl8FcXsAt/Gz8MoXObbOF1Pzg==",
+  "_integrity": "sha512-yADBl2mzqIssrhLaRvJ2gZPyEQK+fN9uYh/1/cwwuq2lKDx+ITWsOrh1vlHMfw1IICMx9cwBjSoiCf3B8Br8nw==",
   "_location": "/@mdi/font",
   "_phantomChildren": {},
   "_requested": {
-    "type": "range",
+    "type": "version",
     "registry": true,
-    "raw": "@mdi/font@^3.3.92",
+    "raw": "@mdi/font@3.9.97",
     "name": "@mdi/font",
     "escapedName": "@mdi%2ffont",
     "scope": "@mdi",
-    "rawSpec": "^3.3.92",
+    "rawSpec": "3.9.97",
     "saveSpec": null,
-    "fetchSpec": "^3.3.92"
+    "fetchSpec": "3.9.97"
   },
   "_requiredBy": [
     "/"
   ],
-  "_resolved": "https://registry.npmjs.org/@mdi/font/-/font-3.8.95.tgz",
-  "_shasum": "772094ed7046b126457b1f3b8c82e26b209e71e8",
-  "_spec": "@mdi/font@^3.3.92",
-  "_where": "/Applications/XAMPP/xamppfiles/htdocs/label",
+  "_resolved": "https://registry.npmjs.org/@mdi/font/-/font-3.9.97.tgz",
+  "_spec": "3.9.97",
+  "_where": "x:\\work\\table80-guestcenter",
   "author": {
     "name": "Austin Andrews",
     "url": "http://twitter.com/templarian"
@@ -30,8 +35,6 @@
   "bugs": {
     "url": "https://github.com/Templarian/MaterialDesign/issues"
   },
-  "bundleDependencies": false,
-  "deprecated": false,
   "description": "Dist for Material Design Webfont. This includes the Stock and Community icons in a single webfont collection.",
   "homepage": "http://materialdesignicons.com",
   "keywords": [
@@ -59,5 +62,5 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "style": "css/materialdesignicons.css",
-  "version": "3.8.95"
+  "version": "3.9.97"
 }

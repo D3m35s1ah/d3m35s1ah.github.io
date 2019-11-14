@@ -1,27 +1,32 @@
 {
-  "_from": "flag-icon-css@^3.2.1",
+  "_args": [
+    [
+      "flag-icon-css@3.3.0",
+      "x:\\work\\table80-guestcenter"
+    ]
+  ],
+  "_from": "flag-icon-css@3.3.0",
   "_id": "flag-icon-css@3.3.0",
   "_inBundle": false,
   "_integrity": "sha512-u5lCGVExrJJRykNGd//ZrBU5Bkt0LTZJFSuG+Az/pwcHgzDeFwomwFbsgVtI1aJd6ysyHsx+5UGrA+nhSGd4yw==",
   "_location": "/flag-icon-css",
   "_phantomChildren": {},
   "_requested": {
-    "type": "range",
+    "type": "version",
     "registry": true,
-    "raw": "flag-icon-css@^3.2.1",
+    "raw": "flag-icon-css@3.3.0",
     "name": "flag-icon-css",
     "escapedName": "flag-icon-css",
-    "rawSpec": "^3.2.1",
+    "rawSpec": "3.3.0",
     "saveSpec": null,
-    "fetchSpec": "^3.2.1"
+    "fetchSpec": "3.3.0"
   },
   "_requiredBy": [
     "/"
   ],
   "_resolved": "https://registry.npmjs.org/flag-icon-css/-/flag-icon-css-3.3.0.tgz",
-  "_shasum": "7772461e4480d3d86da5962f02120a2825688433",
-  "_spec": "flag-icon-css@^3.2.1",
-  "_where": "/Applications/XAMPP/xamppfiles/htdocs/label",
+  "_spec": "3.3.0",
+  "_where": "x:\\work\\table80-guestcenter",
   "author": {
     "name": "Panayiotis Lipiridis",
     "email": "lipiridis@gmail.com"
@@ -29,8 +34,6 @@
   "bugs": {
     "url": "https://github.com/lipis/flag-icon-css/issues"
   },
-  "bundleDependencies": false,
-  "deprecated": false,
   "description": "[![npm version](https://badge.fury.io/js/flag-icon-css.svg)](https://badge.fury.io/js/flag-icon-css)",
   "devDependencies": {
     "grunt": "1.0.3",
