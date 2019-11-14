@@ -75,6 +75,9 @@
 @import "../../../../node_modules/bootstrap/scss/bootstrap";
 /*-------------------------------------------------------------------*/
 
+/* === jQueryUI Css === */
+@import '../../../../node_modules/jquery-ui-dist/jquery-ui.min.css';
+/*-------------------------------------------------------------------*/
 
 /* === Core Files And Mixins === */
 @import "core/mixins/mixins";

@@ -96,6 +96,7 @@ gulp.task('copyVendorAsset', function () {
 gulp.task('bundleCoreJS', function () {
     return gulp.src([
             './node_modules/jquery/dist/jquery.min.js',
+            './node_modules/jquery-ui-dist/jquery-ui.js',
             './node_modules/popper.js/dist/umd/popper.min.js',
             './node_modules/bootstrap/dist/js/bootstrap.min.js',
         ])

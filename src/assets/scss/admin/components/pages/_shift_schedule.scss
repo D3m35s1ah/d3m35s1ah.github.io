@@ -1,0 +1,217 @@
+.schedule {
+    &-header {
+        width: 100%;
+        padding: 20px;
+
+        .add-shift-btn,
+        .save-shift-btn {
+            width: 150px;
+        }
+
+        .add-shift-btn {
+            background-color:#7B7C81;
+        }
+
+        .save-shift-btn {
+            display: none;
+        }
+    }
+
+    &-table {
+        width: 100%;
+        background-color: #fff;
+        border-radius: 5px;
+        border: 1px solid lightgray;
+        display: flex;
+
+        &-content {
+            display: flex;
+            width: 100%;
+        }
+
+        &-work-time {
+            text-align: right;
+            color: lightgray;
+            padding-top: 70px;
+            font-weight: 800;
+
+            &-item {
+                height: 40px;
+                padding-left: .5rem;
+                padding-right: 10px;
+            }
+        }
+
+        &-grid {
+            border-bottom: 0;
+            display: flex;
+            width: 90%;
+
+            &-col {
+                width: 15%;
+                text-align: center;
+                position: relative;
+
+                &-heading {
+                    padding: 5px;
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: lightgray;
+                }
+            }
+
+            &-cell {
+                border: 1px solid lightgray;
+                height: 40px;
+            }
+        }
+    }
+
+    &-settings {
+        background-color: #fff;
+        border-radius: 5px;
+        border: 1px solid lightgray;
+        padding: 10px;
+        color: gray;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity .3s ease;
+
+        .color-select {
+            position: relative;
+            $self: &;
+
+            & > div {
+                width: 100%;
+                height: 100%;
+                border-radius: 1px;
+            }
+
+            &.active {
+                .color-select-list {
+                    display: block;
+                }
+            }
+
+            &-list {
+                padding: 0;
+                display: none;
+                width: 100%;
+                position: absolute;
+                top: 30px;
+                right: 0;
+                background-color: #f8f9fb;
+                border-radius: 0 0 5px 5px;
+                border: 1px solid #f1f4f8;
+                border-top: 0;
+
+                &-item {
+                    height: 20px;
+                    padding: 5px;
+                    box-sizing: content-box;
+
+                    div {
+                        border-radius: 2px;
+                        width: 100%;
+                        height: 100%;
+                    }
+                }
+            }
+        }
+
+        &.active {
+            visibility: visible;
+            opacity: 1;
+        }
+    }
+}
+
+.shift {
+    $self: &;
+    width: 95%;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    position: absolute !important;
+    justify-content: space-between;
+    border-radius: 5px;
+    left: 3%;
+
+    &[data-group-key="new"] {
+        z-index: 666;
+    }
+
+    &.completed {
+        #{$self}-symbol,
+        #{$self}-resizer {
+            display: none;
+        }
+
+        #{$self}-name,
+        #{$self}-remove {
+            display: block;
+        }
+    }
+
+    &.disabled {
+        opacity: .7;
+
+        #{$self}-symbol::after {
+            transform: rotate(90deg);
+        }
+    }
+
+    &-name {
+        display: none;
+        margin: auto;
+        color: white;
+    }
+
+    &-remove {
+        display: none;
+        position: absolute;
+        right: 7%;
+        top: 0;
+        color: white;
+        cursor: pointer;
+    }
+
+    &-symbol {
+        cursor: pointer;
+        border-radius: 5px;
+        width: 40px;
+        height: 40px;
+        padding: 0px 10px;
+        background-color: gainsboro;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+
+        &::before,
+        &::after {
+            display: block;
+            content: '';
+            width: 25px;
+            height: 5px;
+            background-color: lightgray;
+            transition: transform .3s ease;
+        }
+
+        &::after {
+            position: absolute;
+            margin: 0 auto;
+        }
+    }
+
+    .shift-resizer {
+        display: block;
+        width: 40px;
+        height: 5px;
+        position: relative;
+        background-color: rgba(255, 255, 255, .5);
+        border-radius: 10px;
+    }
+}

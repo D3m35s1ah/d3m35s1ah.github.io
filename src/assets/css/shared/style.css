@@ -68,6 +68,7 @@
  * Copyright 2011-2019 Twitter, Inc.
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
  */
+@import url(../../../../node_modules/jquery-ui-dist/jquery-ui.min.css);
 :root {
   --blue: #007bff;
   --indigo: #6610f2;
@@ -7308,6 +7309,8 @@ a.text-white:hover, a.text-white:focus {
     color: inherit;
     border-color: #f2f4f9; } }
 
+/*-------------------------------------------------------------------*/
+/* === jQueryUI Css === */
 /*-------------------------------------------------------------------*/
 /* === Core Files And Mixins === */
 .bg-inverse-primary {
