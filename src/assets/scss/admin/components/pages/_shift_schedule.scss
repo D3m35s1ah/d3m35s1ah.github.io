@@ -77,6 +77,28 @@
         visibility: hidden;
         transition: opacity .3s ease;
 
+        &.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        &-input.error {
+            border: 2px solid tomato;
+            transition: .3s ease;
+        }
+
+        .error-message {
+            color: tomato;
+            font-size: 12px;
+            margin-left: 15px;
+            opacity: 0;
+            transition: opacity .3s ease;
+
+            &.active {
+                opacity: 1;
+            }
+        }
+
         .color-select {
             position: relative;
             $self: &;
@@ -118,11 +140,6 @@
                 }
             }
         }
-
-        &.active {
-            visibility: visible;
-            opacity: 1;
-        }
     }
 }
 
@@ -149,7 +166,8 @@
         }
 
         #{$self}-name,
-        #{$self}-remove {
+        #{$self}-remove,
+        #{$self}-edit {
             display: block;
         }
     }
@@ -173,13 +191,21 @@
         font-size: 110%;
     }
 
-    &-remove {
+    &-remove,
+    &-edit {
         display: none;
         position: absolute;
-        right: 7%;
-        top: 0;
         color: white;
         cursor: pointer;
+        top: 0;
+    }
+
+    &-remove {
+        right: 7%;
+    }
+
+    &-edit {
+        left: 7%;
     }
 
     &-symbol {
