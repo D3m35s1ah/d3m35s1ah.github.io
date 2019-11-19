@@ -1,10 +1,11 @@
 (function($) {
     /* Getting shifts array from localstorage so as to render them */
-    const shifts = JSON.parse(window.localStorage.getItem('shifts')) || [];
+    let shifts = JSON.parse(window.localStorage.getItem('shifts')) || [];
 
     /* jQuery core elements declaration block */
     const $addBtn = $('.add-shift-btn');
     const $saveBtn = $('.save-shift-btn');
+    const $cancelBtn = $('.settings-cancel');
     const $scheduleTime = $('.schedule-table-work-time');
     const $scheduleCol = $('.schedule-table-grid-col');
     const workHours = [
@@ -26,10 +27,11 @@
         groupName = 'new',
         color = 'lightgray',
         index,
-        isCompleted = false
+        isCompleted = false,
+        isDisabled = false
     }) => {
         return `
-        <div class='shift ${isCompleted ? 'completed' : ''}'
+        <div class='shift ${isCompleted ? 'completed' : ''} ${isDisabled ? 'disabled': ''} '
             style='top: ${topOffset}px; height: ${height}px; background-color: ${color}'
             data-index='${index}'
             data-group-key='${groupName}'>
@@ -96,7 +98,7 @@
                     groupKey = $target.data('group-key'),
                     top = $target.css('top');
 
-                $(`[data-group-key='${groupKey}']`).css('top', top);
+                $(`.ui-selected[data-group-key='${groupKey}']`).css('top', top);
             },
             stop: (e, ui) => {
                 const requiredElements = $(ui.element[0]).hasClass('ui-selected') ?
@@ -113,27 +115,195 @@
         })
     };
 
-    const openShiftEditMode = (shift, $shiftElements) => {
+    const handleColorSelect = (e, $shiftElements) => {
+        let selectedColor = $(e.currentTarget).attr('data-value');
+        $(e.currentTarget)
+            .parents('.color-select')
+            .attr('data-selected-color', selectedColor)
+            .find('.color-select-preview')
+            .css('backgroundColor', selectedColor);
+        $shiftElements.css('backgroundColor', selectedColor);
+    };
+
+    /*
+        Function for saving, creating and updating shifts' parameters
+        shift: approptiate shift's params from LocalStorage
+        $shiftElements: jQuery Collection of shift elements
+        action: [
+            'new' - if you need to save new shift's settings
+            'cancel' - if you need to reset all settings and remove settings menu
+            'update' - if you need to update existing shift's settings
+        ]
+    */
+    const closeShiftEditMode = ({
+        action = 'new',
+        shift,
+        $shiftElements
+    }) => {
+        if (action === 'cancel') {
+            $saveBtn.css('display', 'none');
+            $('.schedule-settings').removeClass('active');
+            $addBtn.css('display', 'block');
+
+            $shiftElements.addClass('completed');
+
+            $('#shift-name').val('').removeClass('error').siblings('.error-message').removeClass('active');
+            $('#dining-select').val('');
+            $('[data-group-key="new"]').remove();
+
+            return renderShifts();
+        }
+
+        $shiftElements = $shiftElements || $('[data-group-key=\'new\']');
+        let shiftSettings = {};
+        const shiftName = $('#shift-name').val();
+        const diningArea = $('#dining-select').val();
+        const shiftColor = $('.color-select').attr('data-selected-color');
+
+        /* Raising error on saving shift with empty name */
+        if (!shiftName.trim()) {
+            return $('#shift-name')
+                .addClass('error')
+                .siblings('.error-message')
+                .addClass('active')
+                .html('Shift\'s name is required');
+        } else {
+            $('#shift-name').removeClass('error').siblings('.error-message').removeClass('active');
+        }
+
+        // console.log(parseInt($shiftElements.css('top')), ($('.shift').height() + parseInt($('.shift').css('top'))));
+        // if (parseInt($shiftElements.css('top')) < ($('.shift').height() + parseInt($('.shift').css('top')))) {
+        //     $shiftElements.css('border-color', 'tomato');
+        //     return $('.shift-overlay-error').addClass('active');
+        // }
+
+        $saveBtn.css('display', 'none');
+        $('.schedule-settings').removeClass('active');
+        $addBtn.css('display', 'block');
+
+        const $editGroup = action === 'update' ?
+            $shiftElements
+            : action === 'new' ?
+                $('[data-group-key="new"]')
+                : null;
+
+        /* Setting unique group name for further render */
+        $editGroup.attr('data-group-key', `${shiftName}/${diningArea}`);
+
+        /* Shift's parameters for db or localStorage in my case */
+        shiftSettings.name = shiftName;
+        shiftSettings.area = diningArea;
+        shiftSettings.color = shiftColor;
+        shiftSettings.groupKey= `${shiftName}/${diningArea}`;
+        shiftSettings.yaxis = [];
+        shiftSettings.height = [];
+        shiftSettings.disabled = [];
+        $editGroup.each((index, item) => {
+            shiftSettings.height.push(parseInt($(item).css('height')));
+            shiftSettings.yaxis.push(parseInt($(item).css('top')));
+            if ($(item).hasClass('disabled')) {
+                shiftSettings.disabled.push(index);
+            }
+        });
+
+        /* Hiding shift's elements marked as disabled */
+        $('.shift.disabled').css('display', 'none');
+        $('.ui-selected').removeClass('ui-selected');
+
+        /* Reseting settings after save */
+        $('#shift-name').val('');
+        $('#dining-select').val('');
+        $('[data-group-key="new"]').remove();
+
+        /* Saving changes to localStorage */
+        if (action === 'new') {
+            shifts.push(shiftSettings);
+            window.localStorage.setItem('shifts', JSON.stringify(shifts));
+        } else if (action === 'update') {
+            shifts.forEach((item, index) => {
+                if (item.groupKey === $editGroup.data('groupKey')) {
+                    shifts.splice(index, 1, shiftSettings);
+                }
+            });
+            window.localStorage.setItem('shifts', JSON.stringify(shifts));
+            $shiftElements.addClass('completed');
+        }
+
+        renderShifts();
+    };
+
+    const handleMultipleShiftEvents = (groupKey) => {
+        $(window).keydown(keyE => {
+            $(window).unbind('click').click(clickE => {
+                const $target = $(clickE.target);
+
+                if ($target.attr('data-group-key') === groupKey && keyE.keyCode === 17) {
+                    $target.toggleClass('ui-selected');
+
+                    handleMultipleShiftItemsChange($('.ui-selected'));
+                } else {
+                    const $selected = $('.ui-selected');
+                    $selected.removeClass('ui-selected');
+                }
+            })
+        })
+            .keyup(() => $(window).unbind('click'));
+    };
+
+    const openShiftEditMode = ({
+        action = 'new',
+        shift,
+        $shiftElements
+    }) => {
+        if (action !== 'cancel')
+            $saveBtn.unbind('click').click(() => closeShiftEditMode({
+                shift,
+                $shiftElements,
+                action
+            }));
+
+        $shiftElements.each((i, item) => {
+            return $(item).hasClass('disabled') ? $(item).css('display', 'flex') : null;
+        });
         $('.schedule-settings').addClass('active');
         $addBtn.css('display', 'none');
         $saveBtn.css('display', 'block');
 
         $('#shift-name').val(shift.name);
         $('#dining-select').val(shift.area);
-        $('#shift-color').val(shift.color);
+        $('.color-select').data('selectedColor', shift.color);
+        $('#shift-color').find('.color-select-preview').css('backgroundColor', shift.color);
 
         $shiftElements.removeClass('completed');
+
+        $shiftElements.addClass('ui-selected');
+
+        /* Multidragging feature */
+        handleMultipleShiftEvents($shiftElements.data('group-key'));
+
+        $('.color-select-list-item').click(e => handleColorSelect(e, $shiftElements));
+
+        $cancelBtn.click(() => {
+            closeShiftEditMode({
+                action: 'cancel',
+                shift,
+                $shiftElements
+            })
+        });
+
+        /* Event for marking shift's item as disabled */
+        $shiftElements.children('.shift-symbol').unbind().click(e => {
+            $(e.target).parent().toggleClass('disabled');
+        });
 
         handleMultipleShiftItemsChange($shiftElements);
     };
 
     const handleShiftRemove = e => {
         const groupKey = $(e.target).parent().data('group-key');
-
-        console.log(groupKey);
+        
         shifts.forEach((item, index) => {
-            console.log(item.groupName);
-            if (item.groupName === groupKey) {
+            if (item.groupKey === groupKey) {
                 shifts.splice(index, 1);
             }
         });
@@ -145,10 +315,47 @@
     const handleEditShift = e => {
         const $target = $(e.target),
             selectedGroupKey = $target.parent().data('group-key'),
-            requiredShift = shifts.reduce(shift => shift.groupKey === selectedGroupKey),
+            requiredShift = shifts.find(shift => shift.groupKey === selectedGroupKey ? shift : undefined),
             $selectedShifts = $(`[data-group-key='${selectedGroupKey}'`);
 
-        openShiftEditMode(requiredShift, $selectedShifts);
+
+        openShiftEditMode({
+            shift: requiredShift,
+            $shiftElements: $selectedShifts,
+            action: 'update'
+        });
+    };
+
+    const renderShifts = () => {
+        $('.shift').remove();
+
+        shifts.forEach(shift => {
+            /* If the day is a day off or shift.disabled array includes current index shift won't be rendered */
+            $scheduleCol.each((i, item) => {
+                if (workHours[i] === '0') {
+                    return;
+                }
+
+                /* Adding shift to column */
+                let layout = $(item).html();
+                layout += generateShift({
+                    name: shift.name,
+                    topOffset: shift.yaxis[i],
+                    height: shift.height[i],
+                    groupName: shift.groupKey,
+                    color: shift.color,
+                    index: i,
+                    isCompleted: true,
+                    isDisabled: !!shift.disabled.includes(i)
+                });
+                $(item).html(layout);
+            });
+        });
+
+        /* Event for deleting and changing shifts */
+        $('.disabled').css('display', 'none');
+        $('.shift-remove').click(handleShiftRemove);
+        $('.shift-edit').click(e => handleEditShift(e));
     };
     /* End Function Declaration block */
 
@@ -212,31 +419,7 @@
     }
 
     /* Shifts render */
-    shifts.forEach(shift => {
-        /* If the day is a day off or shift.disabled array includes current index shift won't be rendered */
-        $scheduleCol.each((i, item) => {
-            if (workHours[i] === '0' || shift.disabled.includes(i)) {
-                return;
-            }
-
-            /* Adding shift to column */
-            let layout = $(item).html();
-            layout += generateShift({
-                name: shift.name,
-                topOffset: shift.yaxis[i],
-                height: shift.height[i],
-                groupName: shift.groupKey,
-                color: shift.color,
-                index: i,
-                isCompleted: true,
-            });
-            $(item).html(layout);
-        });
-
-        /* Event for deleting shifts */
-        $('.shift-remove').click(handleShiftRemove);
-        $('.shift-edit').click(handleEditShift);
-    });
+    renderShifts();
     /* End Render Block */
 
     /* Settings section events block */
@@ -247,13 +430,9 @@
         $(e.currentTarget).toggleClass('active');
     });
 
-    $('.color-select-list-item').click(e => {
-        let selectedColor = $(e.currentTarget).attr('data-value');
-        $(e.currentTarget).parents('.color-select').find('.color-select-preview').css('backgroundColor', selectedColor);
-        $('[data-group-key="new"]').css('backgroundColor', selectedColor);
-    });
-
     $addBtn.click(() => {
+        $saveBtn.unbind('click').click(() => closeShiftEditMode({action: 'new'}));
+
         $('.schedule-settings').addClass('active');
         $addBtn.css('display', 'none');
         $saveBtn.css('display', 'block');
@@ -297,103 +476,15 @@
         /* Adding jQuery UI methods for dragging and resizing */
         handleMultipleShiftItemsChange($('.ui-selected'));
 
+        $('.color-select-list-item').click(e => handleColorSelect(e, $newShift));
+
         /* Multidragging feature */
-        $(window).keydown(keyE => {
-            $(window).unbind('click').click(clickE => {
-                const $target = $(clickE.target);
+        handleMultipleShiftEvents($newShift.data('group-key'));
 
-                if ($target.attr('data-group-key') === 'new' && keyE.keyCode === 17) {
-                    $target.toggleClass('ui-selected');
-
-                    handleMultipleShiftItemsChange($('.ui-selected'));
-                } else {
-                    const $selected = $('.ui-selected');
-                    $selected.draggable('destroy');
-                    $selected.resizable('destroy');
-                    $selected.removeClass('ui-selected');
-                }
-            })
-        });
+        $cancelBtn.click(() => closeShiftEditMode({
+            action: 'cancel',
+            $shiftElements: $newShift,
+        }));
     });
-
-    /* Shift save handling */
-    $saveBtn.click(() => {
-        let shiftSettings = {};
-        const shiftName = $('#shift-name').val();
-        const diningArea = $('#dining-select').val();
-        const shiftColor = $('[data-group-key="new"]').css('backgroundColor');
-
-        /* Raising error on saving shift with empty name */
-        if (!shiftName.trim()) {
-            return $('#shift-name')
-                .addClass('error')
-                .siblings('.error-message')
-                .addClass('active')
-                .html('Shift\'s name is required');
-        } else {
-            $('#shift-name').removeClass('error').siblings('.error-message').removeClass('active');
-        }
-
-        $saveBtn.css('display', 'none');
-        $('.schedule-settings').removeClass('active');
-        $addBtn.css('display', 'block');
-
-        const $editGroup = $('[data-group-key="new"]');
-
-        /* Making shift's elements static */
-        $editGroup.draggable('destroy');
-        $editGroup.resizable('destroy');
-
-        /* Removing configuration items */
-        $editGroup.addClass('completed');
-
-        $editGroup.children('.shift-name').html(shiftName);
-
-        /* Setting unique group name for further render */
-        $editGroup.attr('data-group-key', `${shiftName}/${diningArea}`);
-
-        /* Shift's parameters for db or localStorage in my case */
-        shiftSettings.name = shiftName;
-        shiftSettings.area = diningArea;
-        shiftSettings.color = shiftColor;
-        shiftSettings.groupKey= `${shiftName}/${diningArea}`;
-        shiftSettings.yaxis = [];
-        shiftSettings.height = [];
-        shiftSettings.disabled = [];
-        $editGroup.each((index, item) => {
-            shiftSettings.height.push(parseInt($(item).css('height')));
-            shiftSettings.yaxis.push(parseInt($(item).css('top')));
-            if ($(item).hasClass('disabled')) {
-                shiftSettings.disabled.push(index);
-            }
-        });
-
-        /* Removing shift's elements marked as disabled */
-        $('.shift.disabled').remove();
-
-        /* Reseting settings after save */
-        $('#shift-name').val('');
-        $('#dining-select').val('');
-        $('[data-group-key="new"]').remove();
-
-        /* Adding event to remove button */
-        $('.shift-remove').click(handleShiftRemove);
-
-        /* Saving changes to localStorage */
-        let localStorageShifts = JSON.parse(window.localStorage.getItem('shifts')) || [];
-        localStorageShifts.push(shiftSettings);
-        window.localStorage.setItem('shifts', JSON.stringify(localStorageShifts));
-    });
-
-    /* Handling shift creation cancel */
-    $('.settings-cancel').click(e => {
-        $saveBtn.css('display', 'none');
-        $('.schedule-settings').removeClass('active');
-        $addBtn.css('display', 'block');
-
-        $('#shift-name').val('');
-        $('#dining-select').val('');
-        $('[data-group-key="new"]').remove();
-    })
     /* End Settings section events block */
 })(jQuery);

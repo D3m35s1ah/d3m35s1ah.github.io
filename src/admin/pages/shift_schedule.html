@@ -247,6 +247,9 @@
                   <div class="form-group">
                     <h4 class="shedule-settings-heading"> Shift Details </h4>
                   </div>
+                  <span class="error-message shift-overlay-error">
+                    Shift is overlaying another shift
+                  </span>
                   <div class="form-group">
                     <label for="shift-name">
                       <h4>Name</h4>
@@ -274,7 +277,7 @@
                   <div class="form-group">
                     <label for="dining-select">Dining Area</label>
                     <select name="dining" id="dining-select" class="custom-select">
-                      <option value="main">Main</option>
+                      <option value="main" selected>Main</option>
                       <option value="patio">Patio</option>
                       <option value="upstairs-bar">Upstairs Bar</option>
                       <option value="rooftop-tables">Rooftop Tables</option>
