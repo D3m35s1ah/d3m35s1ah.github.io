@@ -7,7 +7,7 @@
     const $saveBtn = $('.save-shift-btn');
     const $cancelBtn = $('.settings-cancel');
     const $scheduleTime = $('.schedule-table-work-time');
-    const $scheduleCol = $('.schedule-table-grid-col');
+    const $scheduleCol = $('.schedule-table-grid-col-wrapper');
     const workHours = [
         ["06:00 AM","01:00 AM"],
         ["06:00 AM","01:00 AM"],
@@ -63,16 +63,9 @@
     };
 
     const handleMultipleShiftItemsChange = ($selected) => {
-        const $scheduleHeading = $('.schedule-table-grid-col-heading');
-
         $selected.draggable({
             axis: 'y',
-            containment: [
-                0,
-                $scheduleHeading.offset().top + 40,
-                0,
-                $scheduleCol.offset().top + $scheduleCol.height() - 110,
-            ],
+            containment: 'parent',
             stop: (e, ui) => {
                   const requiredElements = $(ui.helper[0]).hasClass('ui-selected') ?
                       $('.ui-selected')
@@ -92,7 +85,6 @@
             handles: 'n, s',
             alsoResize: '.ui-selected',
             containment: 'parent',
-            cancel: '.schedule-table-grid-col-heading',
             resize: e => {
                 const $target = $(e.target),
                     groupKey = $target.data('group-key'),
@@ -124,7 +116,6 @@
             .css('backgroundColor', selectedColor);
         $shiftElements.css('backgroundColor', selectedColor);
     };
-
     /*
         Function for saving, creating and updating shifts' parameters
         shift: approptiate shift's params from LocalStorage
@@ -170,6 +161,85 @@
         } else {
             $('#shift-name').removeClass('error').siblings('.error-message').removeClass('active');
         }
+
+        const hasCollision = () => {
+            let groupKeys = [],
+                hasErrors = false;
+
+            $('[data-group-key]').map((i, item) => {
+                const groupKey = item.dataset.groupKey;
+                if (groupKeys.includes(groupKey) || groupKey === 'new' || groupKey === $shiftElements.attr('data-group-key'))
+                    return;
+                groupKeys.push(item.dataset.groupKey);
+            });
+
+            console.log(groupKeys);
+
+            for (item of groupKeys) {
+                $(`[data-group-key][data-group-key="${item}"]`).each((i, item) => {
+                    if (item.classList.contains('disabled')) {
+                        return;
+                    }
+
+                    const shiftParams = $shiftElements.eq(item.dataset.index).get(0).getBoundingClientRect(),
+                        shiftTop = Math.round(shiftParams.top),
+                        shiftBottom = Math.round(shiftParams.bottom),
+                        itemParams = item.getBoundingClientRect(),
+                        itemTop = Math.round(itemParams.top),
+                        itemBottom = Math.round(itemParams.bottom);
+
+                    console.log(`
+                    shiftTop: ${shiftTop},
+                    itemTop: ${itemTop},
+                    shiftBottom: ${shiftBottom},
+                    itemBottom: ${itemBottom}
+                    `);
+
+                    if (!(
+                        (itemTop < shiftTop && itemBottom < shiftBottom &&  itemBottom <= shiftTop)
+                        ||
+                        (itemTop > shiftTop && itemBottom > shiftBottom &&  itemTop >= shiftBottom)
+                    )) {
+                        return hasErrors = !(
+                            (itemTop < shiftTop && itemBottom < shiftBottom && itemBottom <= shiftTop)
+                            ||
+                            (itemTop > shiftTop && itemBottom > shiftBottom && itemTop >= shiftBottom)
+                        )
+                    };
+                });
+
+                if (hasErrors) {
+                    return hasErrors;
+                }
+            }
+        };
+
+        if (hasCollision()) {
+            return $('.shift-overlay-error')
+                .addClass('active');
+        } else {
+            $('.shift-overlay-error').removeClass('active');
+        }
+
+        // const shiftHasCollision = $(`[data-group-key][data-group-key!="${$shiftElements.attr('data-group-key')}"]`).each((i, item) => {
+        //     const shift = $shiftElements.eq(item.dataset.index),
+        //         itemTop = Math.round(item.getBoundingClientRect().top),
+        //         itemBottom = Math.round(item.getBoundingClientRect().bottom),
+        //         shiftTop = Math.round(shift.get(0).getBoundingClientRect().top),
+        //         shiftBottom = Math.round(shift.get(0).getBoundingClientRect().bottom);
+        //
+        //     console.log(` shiftBottom: ${shiftBottom}\n itemTop: ${itemTop}\n shiftTop: ${shiftTop}\n itemBottom: ${itemBottom}`);
+        //     return shiftBottom > itemTop || shiftTop < itemBottom;
+        // });
+        //
+        // console.log(shiftHasCollision);
+        //
+        // if (shiftHasCollision) {
+        //     return $('.shift-overlay-error')
+        //         .addClass('active');
+        // } else {
+        //     $('.shift-overlay-error').removeClass('active');
+        // };
 
         // console.log(parseInt($shiftElements.css('top')), ($('.shift').height() + parseInt($('.shift').css('top'))));
         // if (parseInt($shiftElements.css('top')) < ($('.shift').height() + parseInt($('.shift').css('top')))) {
@@ -271,7 +341,7 @@
 
         $('#shift-name').val(shift.name);
         $('#dining-select').val(shift.area);
-        $('.color-select').data('selectedColor', shift.color);
+        $('.color-select').attr('data-selected-color', shift.color);
         $('#shift-color').find('.color-select-preview').css('backgroundColor', shift.color);
 
         $shiftElements.removeClass('completed');
@@ -439,11 +509,11 @@
 
         /* Rendering new shift for each column */
         $('[data-workday]').each((index, item) => {
-            const $itemParent = $(item).parent();
+            const $colWrapper = $(item).siblings('.schedule-table-grid-col-wrapper');
 
-            let layout = $itemParent.html();
+            let layout = $colWrapper.html();
             layout += generateShift({index: index});
-            $itemParent.html(layout);
+            $colWrapper.html(layout);
         });
 
         const $newShift = $('[data-group-key="new"]');

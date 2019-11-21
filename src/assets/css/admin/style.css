@@ -455,6 +455,8 @@ footer {
       width: 15%;
       text-align: center;
       position: relative; }
+      .schedule-table-grid-col-wrapper {
+        position: relative; }
       .schedule-table-grid-col-heading {
         padding: 5px;
         font-size: 18px;

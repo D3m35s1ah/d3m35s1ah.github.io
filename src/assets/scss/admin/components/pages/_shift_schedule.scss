@@ -52,6 +52,10 @@
                 text-align: center;
                 position: relative;
 
+                &-wrapper {
+                    position: relative;
+                }
+
                 &-heading {
                     padding: 5px;
                     font-size: 18px;
