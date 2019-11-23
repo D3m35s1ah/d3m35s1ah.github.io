@@ -494,10 +494,12 @@
         $('.shift').remove();
 
         shifts.forEach(shift => {
-            /* If the day is a day off or shift.disabled array includes current index shift won't be rendered */
             $scheduleCol.each((i, item) => {
-                if (workHours[i] === '0') {
-                    return;
+                /* If the day is a day off or shift.disabled array includes current index shift won't be rendered */
+                for (let item in selectedFloor.tables) {
+                    if (selectedFloor.tables[item].dining_shift.includes(i) || workHours[i][0] === '0') {
+                        return;
+                    }
                 }
 
                 /* Adding shift to column */
@@ -526,7 +528,7 @@
     /* Render Block */
     /* Setting data-workday attribute which will further prevent cells from appearing in days' off cols */
     $('.schedule-table-grid-col-heading').each((index, item) => {
-        if (workHours[index] !== "0") {
+        if (workHours[index][0] !== "0") {
             $(item).attr('data-workday', true);
         }
     });
