@@ -1,6 +1,122 @@
 (function($) {
+    /*Floors payload*/
+    let floors = JSON.parse(window.localStorage.getItem('floors')) || [
+        {
+            "id": 1,
+            "booking_hours": [
+                ["06:00 AM","01:00 AM"],
+                ["06:00 AM","01:00 AM"],
+                ["06:00 AM","01:00 AM"],
+                ["06:00 AM","01:00 AM"],
+                ["06:00 AM","01:00 AM"],
+                ["0"],
+                ["0"]
+            ],
+            "restaurant_id": 11,
+            "en_name": "Family with out partition",
+            "ar_name": "القسم العائلي بدون عوازل ",
+            "opening_hours": "[[\"01:00 PM\",\"10:00 PM\"],[\"04:00 PM\",\"10:00 PM\"],[\"02:00 PM\",\"11:00 PM\"],[\"03:00 PM\",\"11:59 PM\"],[\"02:00 PM\",\"10:00 PM\"],[\"01:00 PM\",\"10:00 PM\"],[\"08:00 AM\",\"10:00 PM\"]]",
+            "tables": {
+            "1": {
+              "id": 1,
+              "dining_area_id": 1,
+              "name": "S #1",
+              "description": "",
+              "min_capacity": 2,
+              "capacity": 4,
+              "booking": 1,
+              "svg_path": "./shapes/square-four-person-table.svg",
+              "w": 60,
+              "h": 60,
+              "angle": 0,
+              "top": 40,
+              "left": 40
+            },
+            "2": {
+              "id": 2,
+              "dining_area_id": 1,
+              "name": "S #2",
+              "description": "second table",
+              "min_capacity": 1,
+              "capacity": 2,
+              "booking": 1,
+              "svg_path": "./shapes/square-two-person-table.svg",
+              "w": 50,
+              "h": 50,
+              "angle": 90,
+              "top": 145,
+              "left": 45
+            },
+            "3": {
+              "id": 3,
+              "dining_area_id": 1,
+              "name": "S #3",
+              "description": "",
+              "min_capacity": 2,
+              "capacity": 4,
+              "booking": 1,
+              "svg_path": "./shapes/square-four-person-table.svg",
+              "w": 60,
+              "h": 60,
+              "angle": 0,
+              "top": 240,
+              "left": 40
+            },
+            }
+        },
+        {
+            "id": 4,
+            "booking_hours": [
+                ["06:00 AM","01:00 AM"],
+                ["06:00 AM","01:00 AM"],
+                ["06:00 AM","01:00 AM"],
+                ["06:00 AM","01:00 AM"],
+                ["06:00 AM","01:00 AM"],
+                ["0"],
+                ["0"]
+            ],
+            "restaurant_id": 11,
+            "en_name": "Family partition",
+            "ar_name": "قسم العوائل وجود عازل ",
+            "opening_hours": "[[\"12:00 PM\",\"11:59 PM\"],[\"08:00 AM\",\"11:59 PM\"],[\"08:00 AM\",\"11:59 PM\"],[\"08:00 AM\",\"11:59 PM\"],[\"0\"],[\"0\"],[\"0\"]]",
+            "tables": {
+                "30": {
+                "id": 30,
+                "dining_area_id": 4,
+                "name": "table 001",
+                "description": "",
+                "min_capacity": 0,
+                "capacity": 2,
+                "booking": 1,
+                "svg_path": "./shapes/square-two-person-table.svg",
+                "w": 51,
+                "h": 51,
+                "angle": 0,
+                "top": 0,
+                "left": 0
+                }
+            }
+        }
+    ];
+
+    /* Hardcoded floor for further integration */
+    let selectedFloor = floors && floors[0];
+
     /* Getting shifts array from localstorage so as to render them */
-    let shifts = JSON.parse(window.localStorage.getItem('shifts')) || [];
+    let shifts
+
+    if (selectedFloor.tables) {
+        for (let item in selectedFloor.tables) {
+            if (selectedFloor.tables[item].dining_shift) {
+                shifts = selectedFloor.tables[item].dining_shift;
+                break;
+            } else {
+                shifts = [];
+            }
+        }
+    } else {
+        shifts = [];
+    }
 
     /* jQuery core elements declaration block */
     const $addBtn = $('.add-shift-btn');
@@ -8,15 +124,7 @@
     const $cancelBtn = $('.settings-cancel');
     const $scheduleTime = $('.schedule-table-work-time');
     const $scheduleCol = $('.schedule-table-grid-col-wrapper');
-    const workHours = [
-        ["06:00 AM","01:00 AM"],
-        ["06:00 AM","01:00 AM"],
-        ["06:00 AM","01:00 AM"],
-        ["06:00 AM","01:00 AM"],
-        ["06:00 AM","01:00 AM"],
-        ["06:00 AM","01:00 AM"],
-        ["06:00 AM","01:00 AM"]
-    ];
+    const workHours = selectedFloor["booking_hours"];
 
     /* Functions declaration block */
     /* Function with shifts' layout */
@@ -67,15 +175,15 @@
             axis: 'y',
             containment: 'parent',
             stop: (e, ui) => {
-                  const requiredElements = $(ui.helper[0]).hasClass('ui-selected') ?
-                      $('.ui-selected')
-                      : $(ui.helper[0]);
+                const requiredElements = $(ui.helper[0]).hasClass('ui-selected') ?
+                    $('.ui-selected')
+                    : $(ui.helper[0]);
 
-                  const top = parseInt(requiredElements.css('top'));
+                const top = parseInt(requiredElements.css('top'));
 
-                  requiredElements.css({
+                requiredElements.css({
                       'top': 40 * Math.round((top / 40)) + 'px',
-                  })
+                })
             },
             multiple: true
         });
@@ -139,7 +247,7 @@
             $shiftElements.addClass('completed');
 
             $('#shift-name').val('').removeClass('error').siblings('.error-message').removeClass('active');
-            $('#dining-select').val('');
+            $('#dining-select').val($('[data-dining-area-id="1"]').attr('value'));
             $('[data-group-key="new"]').remove();
 
             return renderShifts();
@@ -148,8 +256,9 @@
         $shiftElements = $shiftElements || $('[data-group-key=\'new\']');
         let shiftSettings = {};
         const shiftName = $('#shift-name').val();
-        const diningArea = $('#dining-select').val();
+        const diningArea = $('#dining-select').find(':selected').attr('data-dining-area-id');
         const shiftColor = $('.color-select').attr('data-selected-color');
+        const floorIndex = floors.indexOf(selectedFloor);
 
         /* Raising error on saving shift with empty name */
         if (!shiftName.trim()) {
@@ -173,8 +282,6 @@
                 groupKeys.push(item.dataset.groupKey);
             });
 
-            console.log(groupKeys);
-
             for (item of groupKeys) {
                 $(`[data-group-key][data-group-key="${item}"]`).each((i, item) => {
                     if (item.classList.contains('disabled')) {
@@ -187,13 +294,6 @@
                         itemParams = item.getBoundingClientRect(),
                         itemTop = Math.round(itemParams.top),
                         itemBottom = Math.round(itemParams.bottom);
-
-                    console.log(`
-                    shiftTop: ${shiftTop},
-                    itemTop: ${itemTop},
-                    shiftBottom: ${shiftBottom},
-                    itemBottom: ${itemBottom}
-                    `);
 
                     if (!(
                         (itemTop < shiftTop && itemBottom < shiftBottom &&  itemBottom <= shiftTop)
@@ -220,32 +320,6 @@
         } else {
             $('.shift-overlay-error').removeClass('active');
         }
-
-        // const shiftHasCollision = $(`[data-group-key][data-group-key!="${$shiftElements.attr('data-group-key')}"]`).each((i, item) => {
-        //     const shift = $shiftElements.eq(item.dataset.index),
-        //         itemTop = Math.round(item.getBoundingClientRect().top),
-        //         itemBottom = Math.round(item.getBoundingClientRect().bottom),
-        //         shiftTop = Math.round(shift.get(0).getBoundingClientRect().top),
-        //         shiftBottom = Math.round(shift.get(0).getBoundingClientRect().bottom);
-        //
-        //     console.log(` shiftBottom: ${shiftBottom}\n itemTop: ${itemTop}\n shiftTop: ${shiftTop}\n itemBottom: ${itemBottom}`);
-        //     return shiftBottom > itemTop || shiftTop < itemBottom;
-        // });
-        //
-        // console.log(shiftHasCollision);
-        //
-        // if (shiftHasCollision) {
-        //     return $('.shift-overlay-error')
-        //         .addClass('active');
-        // } else {
-        //     $('.shift-overlay-error').removeClass('active');
-        // };
-
-        // console.log(parseInt($shiftElements.css('top')), ($('.shift').height() + parseInt($('.shift').css('top'))));
-        // if (parseInt($shiftElements.css('top')) < ($('.shift').height() + parseInt($('.shift').css('top')))) {
-        //     $shiftElements.css('border-color', 'tomato');
-        //     return $('.shift-overlay-error').addClass('active');
-        // }
 
         $saveBtn.css('display', 'none');
         $('.schedule-settings').removeClass('active');
@@ -282,21 +356,33 @@
 
         /* Reseting settings after save */
         $('#shift-name').val('');
-        $('#dining-select').val('');
+        $('#dining-select').val($(`[data-dining-area-id='1']`).attr('value'));
         $('[data-group-key="new"]').remove();
 
         /* Saving changes to localStorage */
         if (action === 'new') {
             shifts.push(shiftSettings);
-            window.localStorage.setItem('shifts', JSON.stringify(shifts));
+            floors.forEach(floor => {
+                for (item in floor.tables) {
+                    if (floor.tables[item].dining_area_id == diningArea) {
+                        floor.tables[item].dining_shift = shifts;
+                    }
+                }
+            });
+            window.localStorage.setItem('floors', JSON.stringify(floors));
         } else if (action === 'update') {
             shifts.forEach((item, index) => {
                 if (item.groupKey === $editGroup.data('groupKey')) {
                     shifts.splice(index, 1, shiftSettings);
                 }
             });
-            window.localStorage.setItem('shifts', JSON.stringify(shifts));
-            $shiftElements.addClass('completed');
+            for (let table in selectedFloor.tables) {
+                if (selectedFloor.tables[table].dining_area_id == diningArea) {
+                    selectedFloor.tables[table].dining_shift = shifts;
+                }
+            }
+            floors[floorIndex] = selectedFloor;
+            window.localStorage.setItem('floors', JSON.stringify(floors));
         }
 
         renderShifts();
@@ -331,7 +417,7 @@
                 $shiftElements,
                 action
             }));
-
+        
         $shiftElements.each((i, item) => {
             return $(item).hasClass('disabled') ? $(item).css('display', 'flex') : null;
         });
@@ -340,7 +426,8 @@
         $saveBtn.css('display', 'block');
 
         $('#shift-name').val(shift.name);
-        $('#dining-select').val(shift.area);
+        $(`[data-dining-area-id='${shift.area || 1}']`).attr('selected', true);
+        $('#dining-select').val($(`[data-dining-area-id='${shift.area || 1}']`).attr('value'));
         $('.color-select').attr('data-selected-color', shift.color);
         $('#shift-color').find('.color-select-preview').css('backgroundColor', shift.color);
 
@@ -371,15 +458,23 @@
 
     const handleShiftRemove = e => {
         const groupKey = $(e.target).parent().data('group-key');
+        const $shiftElements = $(`[data-group-key='${groupKey}']`);
+        const floorIndex = floors.indexOf(selectedFloor);
         
         shifts.forEach((item, index) => {
             if (item.groupKey === groupKey) {
                 shifts.splice(index, 1);
             }
         });
-        window.localStorage.setItem('shifts', JSON.stringify(shifts));
+        for (let table in selectedFloor.tables) {
+            if (selectedFloor.tables[table].dining_area_id == groupKey.split('/')[1]) {
+                selectedFloor.tables[table].dining_shift = shifts;
+            }
+        }
+        floors[floorIndex] = selectedFloor;
+        window.localStorage.setItem('floors', JSON.stringify(floors));
 
-        $(`[data-group-key='${groupKey}']`).remove();
+        $shiftElements.remove();
     };
 
     const handleEditShift = e => {
@@ -387,7 +482,6 @@
             selectedGroupKey = $target.parent().data('group-key'),
             requiredShift = shifts.find(shift => shift.groupKey === selectedGroupKey ? shift : undefined),
             $selectedShifts = $(`[data-group-key='${selectedGroupKey}'`);
-
 
         openShiftEditMode({
             shift: requiredShift,
@@ -445,7 +539,7 @@
     $scheduleCol.each((index, item) => {
         //If days is marked as day off skip it
         if (workHours[index][0] === "0") {
-            return false;
+            return true;
         }
 
         /* Calculate the latest and the earliest hours of working day */

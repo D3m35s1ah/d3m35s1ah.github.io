@@ -219,6 +219,10 @@
                   </div>
                   <div class="schedule-table-grid">
                     <div class="schedule-table-grid-col">
+                      <div class="schedule-table-grid-col-heading"> Sunday </div>
+                      <div class="schedule-table-grid-col-wrapper"></div>
+                    </div>
+                    <div class="schedule-table-grid-col">
                       <div class="schedule-table-grid-col-heading"> Monday </div>
                       <div class="schedule-table-grid-col-wrapper"></div>
                     </div>
@@ -240,10 +244,6 @@
                     </div>
                     <div class="schedule-table-grid-col">
                       <div class="schedule-table-grid-col-heading"> Saturday </div>
-                      <div class="schedule-table-grid-col-wrapper"></div>
-                    </div>
-                    <div class="schedule-table-grid-col">
-                      <div class="schedule-table-grid-col-heading"> Sunday </div>
                       <div class="schedule-table-grid-col-wrapper"></div>
                     </div>
                   </div>
@@ -284,11 +284,11 @@
                   <div class="form-group">
                     <label for="dining-select">Dining Area</label>
                     <select name="dining" id="dining-select" class="custom-select">
-                      <option value="main" selected>Main</option>
-                      <option value="patio">Patio</option>
-                      <option value="upstairs-bar">Upstairs Bar</option>
-                      <option value="rooftop-tables">Rooftop Tables</option>
-                      <option value="private-dining">Private Dining</option>
+                      <option value="main" data-dining-area-id='1'>Main</option>
+                      <option value="patio" data-dining-area-id="2">Patio</option>
+                      <option value="upstairs-bar" data-dining-area-id="3">Upstairs Bar</option>
+                      <option value="rooftop-tables" data-dining-area-id="4">Rooftop Tables</option>
+                      <option value="private-dining" data-dining-area-id="5">Private Dining</option>
                     </select>
                   </div>
                   <div class="form-group">
