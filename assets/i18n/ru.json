@@ -1,0 +1,44 @@
+{
+  "LOGIN": {
+    "HELLO": "Добро Пожаловать",
+    "PASSWORD": "Пароль",
+    "LOGIN": "Войти",
+    "EMAIL": "E-Mail",
+    "REGISTER": "Ещё нет аккаунта?"
+  },
+  "REGISTER": {
+    "FIRST_NAME": "Ваше имя",
+    "LAST_NAME": "Ваша фамилия",
+    "PHONE": "Телефон",
+    "EMAIL": "E-Mail",
+    "PASSWORD": "Пароль",
+    "SUBMIT": "Создать аккаунт",
+    "LOGIN": "Уже есть аккаунт?"
+  },
+  "RESET": {
+    "TITLE": "Сброс пароля",
+    "EMAIL": "E-Mail",
+    "SUBMIT": "Сбросить пароль",
+    "LOGIN": "Войти",
+    "RESET_FORM": {
+      "TITLE": "Введите новый пароль",
+      "PASSWORD": "Новый пароль",
+      "SUBMIT": "Готово"
+    },
+    "SUBMITTED": {
+      "TITLE": "Письмо отправлено, проверьте почту"
+    }
+  },
+  "ACTIVATION": {
+    "WAIT": "Аккаунт активируется, подождите немного..."
+  },
+  "HOME": {
+    "NO_PHONE": "Добавьте телефон",
+    "LOGOUT": "Выйти"
+  },
+  "QR": {
+    "CREATE_PAYMENT": "Создать платёж",
+    "SCANNER_ENABLED": "Отмена",
+    "SCANNER_DISABLED": "Просканировать QR code"
+  }
+}
